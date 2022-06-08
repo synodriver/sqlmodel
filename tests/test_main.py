@@ -1,6 +1,6 @@
-import pytest
 from typing import Optional
 
+import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Field, Session, SQLModel, create_engine
 
