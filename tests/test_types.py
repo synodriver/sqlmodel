@@ -86,7 +86,7 @@ def table_creation_and_selection_with_types(object_value):
 
     with Session(engine) as session:
         query_hero = session.query(Item).first()
-        assert type(query_hero.object) is type(item.object)
+        assert isinstance(query_hero.object, type(item.object))
         assert query_hero.object == item.object
 
     SQLModel.metadata.clear()
