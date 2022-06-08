@@ -150,7 +150,7 @@ def Field(
     sa_column_args: Union[Sequence[Any], UndefinedType] = Undefined,
     sa_column_kwargs: Union[Mapping[str, Any], UndefinedType] = Undefined,
     schema_extra: Optional[Dict[str, Any]] = None,
-    **kwargs
+    **kwargs,
 ) -> Any:
     current_schema_extra = schema_extra or {}
     field_info = FieldInfo(
@@ -182,7 +182,7 @@ def Field(
         sa_column_args=sa_column_args,
         sa_column_kwargs=sa_column_kwargs,
         **current_schema_extra,
-        **kwargs
+        **kwargs,
     )
     field_info._validate()
     return field_info
