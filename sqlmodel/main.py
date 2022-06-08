@@ -668,7 +668,7 @@ def create_model(
     field_definitions: Dict[str, Tuple[Any, Any]],
     *,
     __module__: str = __name__,
-    **kwargs,
+    **kwargs: Any,
 ) -> Type[SQLModelMetaclass]:
     """
     Dynamically create a model, similar to the Pydantic `create_model()` method
