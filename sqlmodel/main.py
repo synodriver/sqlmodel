@@ -292,7 +292,7 @@ class SQLModelMetaclass(ModelMetaclass, DeclarativeMeta):
             # If it was passed by kwargs, ensure it's also set in config
             new_cls.__config__.table = config_table
             for k, v in new_cls.__fields__.items():
-                col = get_column_from_field(v)
+                col = get_column_from_field(v, cls=new_cls)
                 setattr(new_cls, k, col)
             # Set a config flag to tell FastAPI that this should be read with a field
             # in orm_mode instead of preemptively converting it to a dict.
@@ -328,7 +328,7 @@ class SQLModelMetaclass(ModelMetaclass, DeclarativeMeta):
         if getattr(cls.__config__, "table", False) and not base_is_table:
             dict_used = dict_.copy()
             for field_name, field_value in cls.__fields__.items():
-                dict_used[field_name] = get_column_from_field(field_value)
+                dict_used[field_name] = get_column_from_field(field_value, cls=cls)
             for rel_name, rel_info in cls.__sqlmodel_relationships__.items():
                 if rel_info.sa_relationship:
                     # There's a SQLAlchemy relationship declared, that takes precedence
@@ -416,7 +416,12 @@ def get_sqlachemy_type(field: ModelField) -> Any:
     raise ValueError(f"The field {field.name} has no matching SQLAlchemy type")
 
 
-def get_column_from_field(field: ModelField) -> Column:  # type: ignore
+_TSQLModel = TypeVar("_TSQLModel", bound="SQLModel")
+
+
+def get_column_from_field(
+    field: ModelField, cls: Union[_TSQLModel, SQLModelMetaclass]
+) -> Column:  # type: ignore
     sa_column = getattr(field.field_info, "sa_column", Undefined)
     if isinstance(sa_column, Column):
         return sa_column
@@ -434,7 +439,12 @@ def get_column_from_field(field: ModelField) -> Column:  # type: ignore
     foreign_key = getattr(field.field_info, "foreign_key", None)
     unique = getattr(field.field_info, "unique", False)
     if foreign_key:
-        args.append(ForeignKey(foreign_key))
+        tablename = getattr(cls, "__tablename__", None)
+        if tablename is not None:
+            fk_name = f"{tablename}_{field.name}_fkey"
+            args.append(ForeignKey(foreign_key, name=fk_name))
+        else:
+            args.append(ForeignKey(foreign_key))
     kwargs = {
         "primary_key": primary_key,
         "nullable": nullable,
@@ -466,9 +476,6 @@ def _value_items_is_true(v: Any) -> bool:
     # Re-implement Pydantic's ValueItems.is_true() as it hasn't been released as of
     # the current latest, Pydantic 1.8.2
     return v is True or v is ...
-
-
-_TSQLModel = TypeVar("_TSQLModel", bound="SQLModel")
 
 
 class SQLModel(BaseModel, metaclass=SQLModelMetaclass, registry=default_registry):
