@@ -306,7 +306,7 @@ class SQLModelMetaclass(ModelMetaclass, DeclarativeMeta):
             # If it was passed by kwargs, ensure it's also set in config
             new_cls.__config__.validate = config_validate
             for k, v in new_cls.__fields__.items():
-                col = get_column_from_field(v)
+                col = get_column_from_field(v, cls=new_cls)
                 setattr(new_cls, k, col)
 
         config_registry = get_config("registry")
@@ -515,11 +515,9 @@ class SQLModel(BaseModel, metaclass=SQLModelMetaclass, registry=default_registry
         )
         # Only raise errors if not a SQLModel model
         if (
-            (not getattr(__pydantic_self__.__config__, "table", False)
-            or getattr(__pydantic_self__.__config__, "validate", False))
-            and validation_error
-        ):
-            raise validation_error
+            not getattr(__pydantic_self__.__config__, "table", False)
+            or getattr(__pydantic_self__.__config__, "validate", False)
+        ) and validation_error:
             raise validation_error
         # Do not set values as in Pydantic, pass them through setattr, so SQLAlchemy
         # can handle them
