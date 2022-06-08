@@ -33,7 +33,15 @@ from pydantic.typing import ForwardRef, NoArgAnyCallable, resolve_annotations
 from pydantic.utils import ROOT_KEY, Representation
 from sqlalchemy import Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as sa_Enum
-from sqlalchemy import Float, ForeignKey, Integer, Interval, Numeric, inspect, TypeDecorator
+from sqlalchemy import (
+    Float,
+    ForeignKey,
+    Integer,
+    Interval,
+    Numeric,
+    TypeDecorator,
+    inspect,
+)
 from sqlalchemy.orm import RelationshipProperty, declared_attr, registry, relationship
 from sqlalchemy.orm.attributes import set_attribute
 from sqlalchemy.orm.decl_api import DeclarativeMeta
@@ -404,8 +412,7 @@ def get_sqlachemy_type(field: ModelField) -> Any:
     if issubclass(field.type_, BaseModel):
         if field.type_.__custom_root_type__:
             return get_pydantic_root_model_engine_type(
-                get_sqlachemy_type(field.type_.__fields__['__root__']),
-                field.type_
+                get_sqlachemy_type(field.type_.__fields__["__root__"]), field.type_
             )
     if issubclass(field.type_, str):
         if field.field_info.max_length:
