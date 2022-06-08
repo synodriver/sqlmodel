@@ -33,7 +33,15 @@ from pydantic.typing import ForwardRef, NoArgAnyCallable, resolve_annotations
 from pydantic.utils import ROOT_KEY, Representation
 from sqlalchemy import Boolean, Column, Date, DateTime
 from sqlalchemy import Enum as sa_Enum
-from sqlalchemy import Float, ForeignKey, Integer, Interval, Numeric, inspect
+from sqlalchemy import (
+    Float,
+    ForeignKey,
+    Integer,
+    Interval,
+    Numeric,
+    TypeDecorator,
+    inspect,
+)
 from sqlalchemy.orm import RelationshipProperty, declared_attr, registry, relationship
 from sqlalchemy.orm.attributes import set_attribute
 from sqlalchemy.orm.decl_api import DeclarativeMeta
@@ -381,7 +389,33 @@ class SQLModelMetaclass(ModelMetaclass, DeclarativeMeta):
             ModelMetaclass.__init__(cls, classname, bases, dict_, **kw)
 
 
+def get_pydantic_root_model_engine_type(
+    impl_: Any, root_model_: Type[BaseModel]
+) -> Any:
+    class PydanticRootModelType(TypeDecorator):  # type: ignore
+        impl = impl_
+
+        def process_bind_param(self, value: Any, dialect: Any) -> Any:
+            if value is not None:
+                value = value.__root__
+
+            return value
+
+        def process_result_value(self, value: Any, dialect: Any) -> Any:
+            if value is not None:
+                value = root_model_.parse_obj(value)
+
+            return value
+
+    return PydanticRootModelType
+
+
 def get_sqlachemy_type(field: ModelField) -> Any:
+    if issubclass(field.type_, BaseModel):
+        if field.type_.__custom_root_type__:
+            return get_pydantic_root_model_engine_type(
+                get_sqlachemy_type(field.type_.__fields__["__root__"]), field.type_
+            )
     if issubclass(field.type_, str):
         if field.field_info.max_length:
             return AutoString(length=field.field_info.max_length)
