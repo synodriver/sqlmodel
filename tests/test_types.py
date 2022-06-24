@@ -17,13 +17,21 @@ class HeroEnum(Enum):
 
 
 types_values = [
-    str("Hero"),
-    float(0.5),
-    int(5),
-    datetime(year=2020, month=2, day=2, hour=2, minute=2, second=2, microsecond=2),
+    "Hero",
+    0.5,
+    5,
+    datetime(
+        year=2020, month=2, day=2, hour=2, minute=2, second=2, microsecond=2
+    ),
     date(year=2020, month=2, day=2),
     timedelta(
-        days=2, seconds=2, microseconds=2, milliseconds=2, minutes=2, hours=2, weeks=2
+        days=2,
+        seconds=2,
+        microseconds=2,
+        milliseconds=2,
+        minutes=2,
+        hours=2,
+        weeks=2,
     ),
     time(hour=2, minute=2, second=2, microsecond=2),
     HeroEnum.SPIDER_MAN,
