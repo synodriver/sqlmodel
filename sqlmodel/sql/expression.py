@@ -447,8 +447,8 @@ def select(  # type: ignore
 
 def select(*entities: Any, **kw: Any) -> Union[Select, SelectOfScalar]:  # type: ignore
     if len(entities) == 1:
-        return SelectOfScalar._create(*entities, **kw)  # type: ignore
-    return Select._create(*entities, **kw)  # type: ignore
+        return SelectOfScalar(*entities)  # type: ignore
+    return Select(*entities)  # type: ignore
 
 
 # TODO: add several @overload from Python types to SQLAlchemy equivalents
